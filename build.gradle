@@ -52,10 +52,10 @@ jacocoTestReport {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.springframework.boot:spring-boot-starter-data-mongodb')
-    implementation 'com.linecorp.bot:line-bot-spring-boot:1.16.0'
-    implementation 'com.linecorp.bot:line-bot-servlet:1.16.0'
-    implementation 'com.linecorp.bot:line-bot-model:1.16.0'
-    implementation 'com.linecorp.bot:line-bot-api-client:1.16.0'
+    compile 'com.linecorp.bot:line-bot-spring-boot:1.16.0'
+    compile 'com.linecorp.bot:line-bot-servlet:1.16.0'
+    compile 'com.linecorp.bot:line-bot-model:1.16.0'
+    compile 'com.linecorp.bot:line-bot-api-client:1.16.0'
     compileOnly('org.projectlombok:lombok:1.16.20')
     compileOnly('de.flapdoodle.embed:de.flapdoodle.embed.mongo')
     testCompile("org.assertj:assertj-core:3.10.0")
