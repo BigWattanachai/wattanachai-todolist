@@ -28,6 +28,9 @@ import java.util.concurrent.ExecutionException;
 @Service
 @Slf4j
 public class MessageService {
+    private static final String regexDate = "^[0-3]?[0-9]/[0-3]?[0-9]/[0-3]?[0-9]";
+    private static final String regexTime = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
+
     private UserRepository userRepository;
     private TodoRepository todoRepository;
     private LineMessagingClient lineMessagingClient;
@@ -102,7 +105,6 @@ public class MessageService {
                 Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
                 return Optional.of(new Tuple<>(task, date));
             } else {
-                String regexDate = "^[0-3]?[0-9]/[0-3]?[0-9]/[0-3]?[0-9]";
                 Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
                 if (isMatchDate) {
                     DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
@@ -111,23 +113,45 @@ public class MessageService {
                     return Optional.of(new Tuple<>(task, date));
                 }
             }
+        } else if (stringSplited.length == 2) {
+            String task = stringSplited[0];
+            String dateString = stringSplited[1];
+            if ("today".equalsIgnoreCase(dateString)) {
+                DateTime dateTime = new DateTime();
+                Date date = setDefaultTimeToDate(dateTime);
+                return Optional.of(new Tuple<>(task, date));
+            } else if ("tommorrow".equalsIgnoreCase(dateString)) {
+                DateTime dateTime = new DateTime().plusDays(1);
+                Date date = setDefaultTimeToDate(dateTime);
+                return Optional.of(new Tuple<>(task, date));
+            } else {
+                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
+                if (isMatchDate) {
+                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
+                    DateTime dateTime = formatter.parseDateTime(dateString);
+                    Date date = setDefaultTimeToDate(dateTime);
+                    return Optional.of(new Tuple<>(task, date));
+                }
+            }
         }
         return Optional.empty();
     }
 
+    private Date setDefaultTimeToDate(DateTime dateTime) {
+        return dateTime.withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0).toDate();
+    }
+
     private Date getDateByTimeStringAndDateTime(String timeString, DateTime dateTime) {
-        String regex = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
-        Boolean isMatchTime = RegexUtils.patternMatch(regex, timeString).matches();
+        Boolean isMatchTime = RegexUtils.patternMatch(regexTime, timeString).matches();
         if (isMatchTime) {
             String[] timeSprite = timeString.split(":");
             return dateTime.withHourOfDay(Integer.parseInt(timeSprite[0]))
                     .withMinuteOfHour(Integer.parseInt(timeSprite[1]))
                     .withSecondOfMinute(0).toDate();
         } else {
-            return dateTime.withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0).toDate();
+            return setDefaultTimeToDate(dateTime);
         }
     }
-
 
     private void reply(String replyToken, Message message) {
         reply(replyToken, Collections.singletonList(message));

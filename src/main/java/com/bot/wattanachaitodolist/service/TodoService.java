@@ -22,7 +22,7 @@ public class TodoService {
 
 
     public HttpEntity<ApiResponse> getAllTodos(String id) {
-        return userRepository.findOne(id).map(it ->
+        return userRepository.findByUserId(id).map(it ->
                 new ApiResponse(it.getTodoList()).build(HttpStatus.OK))
                 .orElse(new ApiResponse("User not found", null).build(HttpStatus.NOT_FOUND));
     }
