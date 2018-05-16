@@ -1,93 +1,147 @@
 package com.bot.wattanachaitodolist.service;
 
-import com.bot.wattanachaitodolist.constant.MessageCommand;
+import com.bot.wattanachaitodolist.common.Tuple;
 import com.bot.wattanachaitodolist.domain.Todo;
+import com.bot.wattanachaitodolist.domain.User;
 import com.bot.wattanachaitodolist.repository.TodoRepository;
-import com.bot.wattanachaitodolist.util.JsonMapper;
+import com.bot.wattanachaitodolist.repository.UserRepository;
+import com.bot.wattanachaitodolist.util.RegexUtils;
 import com.linecorp.bot.client.LineMessagingClient;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
 import com.linecorp.bot.model.message.Message;
 import com.linecorp.bot.model.message.TextMessage;
-import com.linecorp.bot.model.response.BotApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @Service
 @Slf4j
 public class MessageService {
+    private UserRepository userRepository;
     private TodoRepository todoRepository;
     private LineMessagingClient lineMessagingClient;
 
     @Autowired
-    public MessageService(TodoRepository todoRepository, LineMessagingClient lineMessagingClient) {
+    public MessageService(UserRepository userRepository, TodoRepository todoRepository,
+                          LineMessagingClient lineMessagingClient) {
+        this.userRepository = userRepository;
         this.todoRepository = todoRepository;
         this.lineMessagingClient = lineMessagingClient;
     }
 
     public void messageCommand(MessageEvent<TextMessageContent> messageEvent) {
-
         TextMessageContent message = messageEvent.getMessage();
         log.info("Got text message from {}: {}", messageEvent.getReplyToken(), message.getText());
-        log.info("Source Info : {}", messageEvent.getSource());
-
-        MessageCommand command = parseMessageCommand(message.getText());
 
         if ("edit".equalsIgnoreCase(message.getText())) {
             this.replyText(messageEvent.getReplyToken(), "https://medium.com/@Big.Wattanachai");
         } else {
-            this.replyText(messageEvent.getReplyToken(), JsonMapper.toJson(messageEvent).orElse("cannot map json"));
+            executeCreateTodo(messageEvent.getReplyToken(), messageEvent, message);
         }
-
-//        switch (command) {
-//            case CREATE_TODO:
-//                log.info("CREATE_TODO from {}: {}", messageEvent.getReplyToken(), message.getText());
-//                executeCreateTodo(messageEvent.getReplyToken(), messageEvent, message);
-//            case EDIT_TODO:
-//                log.info("EDIT_TODO from {}: {}", messageEvent.getReplyToken(), message.getText());
-//                executeEditTodoList();
-//            default:
-//                log.info("default {}", message.getText());
-//
-//        }
     }
 
     private void executeCreateTodo(String replyToken, MessageEvent<TextMessageContent> messageEvent,
                                    TextMessageContent message) {
+        Optional<Tuple<String, Date>> taskAndDateTuper = getTaskAndDateTimeTuper(message.getText());
+        if (taskAndDateTuper.isPresent()) {
+            final String userId = messageEvent.getSource().getUserId();
+            User userResult = userRepository.findByUserId(userId).map(it -> updateUser(taskAndDateTuper.get(), it))
+                    .orElseGet(() -> createNewUser(taskAndDateTuper.get(), userId));
+            String response = "Your todo has been created successfully : " + userResult;
+            this.replyText(replyToken, response);
+        } else {
+            this.replyText(replyToken, "Please enter correct todo format.");
+        }
+    }
+
+    private User updateUser(Tuple<String, Date> taskAndDateTuper, User it) {
+        Todo todoCreated = createTodo(taskAndDateTuper);
+        it.getTodoList().add(todoCreated);
+        return userRepository.save(it);
+    }
+
+    private User createNewUser(Tuple<String, Date> taskAndDateTuper, String userId) {
+        Todo todoCreated = createTodo(taskAndDateTuper);
+        User user = new User();
+        user.setUserId(userId);
+        user.setTodoList(Collections.singletonList(todoCreated));
+        return userRepository.save(user);
+    }
+
+    private Todo createTodo(Tuple<String, Date> taskAndDateTuper) {
         Todo todo = new Todo();
-        todo.setImportant(false);
         todo.setCompleted(false);
-        todo.setTask(message.getText());
-        todoRepository.save(todo);
-        String response = "Your todo has been created successfully : " + message.getText();
-        this.replyText(replyToken, response);
+        todo.setImportant(false);
+        todo.setTask(taskAndDateTuper._1);
+        todo.setDate(taskAndDateTuper._2);
+        return todoRepository.save(todo);
     }
 
-    private void executeEditTodoList() {
-
+    private Optional<Tuple<String, Date>> getTaskAndDateTimeTuper(String message) {
+        String[] stringSplited = message.split(" : ");
+        if (stringSplited.length == 3) {
+            String task = stringSplited[0];
+            String dateString = stringSplited[1];
+            if ("today".equalsIgnoreCase(dateString)) {
+                DateTime dateTime = new DateTime();
+                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
+                return Optional.of(new Tuple<>(task, date));
+            } else if ("tommorrow".equalsIgnoreCase(dateString)) {
+                DateTime dateTime = new DateTime().plusDays(1);
+                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
+                return Optional.of(new Tuple<>(task, date));
+            } else {
+                String regexDate = "^[0-3]?[0-9]/[0-3]?[0-9]/[0-3]?[0-9]";
+                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
+                if (isMatchDate) {
+                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
+                    DateTime dateTime = formatter.parseDateTime(dateString);
+                    Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
+                    return Optional.of(new Tuple<>(task, date));
+                }
+            }
+        }
+        return Optional.empty();
     }
 
-    protected void reply(String replyToken, Message message) {
+    private Date getDateByTimeStringAndDateTime(String timeString, DateTime dateTime) {
+        String regex = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
+        Boolean isMatchTime = RegexUtils.patternMatch(regex, timeString).matches();
+        if (isMatchTime) {
+            String[] timeSprite = timeString.split(":");
+            return dateTime.withHourOfDay(Integer.parseInt(timeSprite[0]))
+                    .withMinuteOfHour(Integer.parseInt(timeSprite[2]))
+                    .withSecondOfMinute(0).toDate();
+        } else {
+            return dateTime.withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0).toDate();
+        }
+    }
+
+
+    private void reply(String replyToken, Message message) {
         reply(replyToken, Collections.singletonList(message));
     }
 
-    protected void reply(String replyToken, List<Message> messages) {
+    private void reply(String replyToken, List<Message> messages) {
         try {
-            BotApiResponse apiResponse = lineMessagingClient.replyMessage(new ReplyMessage(replyToken, messages)).get();
+            lineMessagingClient.replyMessage(new ReplyMessage(replyToken, messages)).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected void replyText(String replyToken, String message) {
+    private void replyText(String replyToken, String message) {
         if (replyToken.isEmpty()) {
             throw new IllegalArgumentException("replyToken must not be empty");
         }
@@ -95,16 +149,5 @@ public class MessageService {
             message = message.substring(0, 1000 - 2) + "……";
         }
         this.reply(replyToken, new TextMessage(message));
-    }
-
-    protected static String createUri(String path) {
-        return ServletUriComponentsBuilder.fromCurrentContextPath().path(path).build().toUriString();
-    }
-
-
-    private MessageCommand parseMessageCommand(String receiveMessage) {
-        return Arrays.stream(MessageCommand.values())
-                .filter(it -> receiveMessage.contains(it.getCommand()))
-                .findFirst().orElse(MessageCommand.NO_COMMAND);
     }
 }

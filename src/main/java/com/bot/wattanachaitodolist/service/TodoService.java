@@ -3,48 +3,48 @@ package com.bot.wattanachaitodolist.service;
 import com.bot.wattanachaitodolist.domain.Todo;
 import com.bot.wattanachaitodolist.model.ApiResponse;
 import com.bot.wattanachaitodolist.repository.TodoRepository;
-import lombok.extern.slf4j.Slf4j;
+import com.bot.wattanachaitodolist.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
-@Slf4j
 public class TodoService {
+    private UserRepository userRepository;
     private TodoRepository todoRepository;
 
     @Autowired
-    public TodoService(TodoRepository todoRepository) {
+    public TodoService(UserRepository userRepository, TodoRepository todoRepository) {
+        this.userRepository = userRepository;
         this.todoRepository = todoRepository;
     }
 
-    public Todo createTodo(Todo todo) {
-        return todoRepository.save(todo);
+
+    public HttpEntity<ApiResponse> getAllTodos(String id) {
+        return userRepository.findOne(id).map(it ->
+                new ApiResponse(it.getTodoList()).build(HttpStatus.OK))
+                .orElse(new ApiResponse("User not found", null).build(HttpStatus.NOT_FOUND));
     }
 
-    public HttpEntity<ApiResponse> getAllTodos() {
-        return new ApiResponse(todoRepository.findAllByOrderByUpdatedDateAsc()).build(HttpStatus.OK);
+    public HttpEntity<ApiResponse> editTodo(String todoId, Todo todo) {
+        return todoRepository.findOne(todoId)
+                .map(it -> updateTodo(todo, it))
+                .orElse(new ApiResponse("Todo not found", null).build(HttpStatus.NOT_FOUND));
     }
 
-    public HttpEntity<ApiResponse> editTodo(String id, Todo todo) {
-        return Optional.ofNullable(todoRepository.findOne(id))
-                .map(it -> {
-                    it.setTask(todo.getTask());
-                    it.setDate(todo.getDate());
-                    it.setCompleted(todo.isCompleted());
-                    it.setImportant(todo.isImportant());
-                    return todoRepository.save(it);
-                })
+    private HttpEntity<ApiResponse> updateTodo(Todo todo, Todo it) {
+        it.setImportant(todo.isImportant());
+        it.setTask(todo.getTask());
+        it.setDate(todo.getDate());
+        it.setCompleted(todo.isCompleted());
+        it.setImportant(todo.isImportant());
+        return new ApiResponse(todoRepository.save(it)).build(HttpStatus.OK);
+    }
+
+    public HttpEntity<ApiResponse> getTodo(String todoId) {
+        return todoRepository.findOne(todoId)
                 .map(updatedTodo -> new ApiResponse(updatedTodo).build(HttpStatus.OK))
-                .orElse(new ApiResponse("not found", null).build(HttpStatus.NOT_FOUND));
-    }
-
-    public HttpEntity<ApiResponse> getTodo(String id) {
-        return Optional.ofNullable(todoRepository.findOne(id))
-                .map(updatedTodo -> new ApiResponse(updatedTodo).build(HttpStatus.OK))
-                .orElse(new ApiResponse("not found", null).build(HttpStatus.NOT_FOUND));
+                .orElse(new ApiResponse("Todo not found", null).build(HttpStatus.NOT_FOUND));
     }
 }

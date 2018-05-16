@@ -50,42 +50,42 @@ public class TodoControllerTest {
         secondTodo.setCreatedDate(new Date());
         secondTodo.setTask("secondTodo");
 
-        when(todoService.getAllTodos()).thenReturn(new ApiResponse(asList(firstTodo, secondTodo))
+        when(todoService.getAllTodos(anyString())).thenReturn(new ApiResponse(asList(firstTodo, secondTodo))
                 .build(HttpStatus.OK));
 
-        mvc.perform(get("/api/v1/todos"))
+        mvc.perform(get("/api/v1/userId48/todos"))
                 .andExpect(jsonPath("$.message", is("success")))
                 .andExpect(jsonPath("$.data[0].task", is("firstTodo")))
                 .andExpect(jsonPath("$.data[1].task", is("secondTodo")))
                 .andExpect(status().isOk());
 
-        verify(todoService).getAllTodos();
+        verify(todoService).getAllTodos(anyString());
     }
 
     @Test
     public void shouldReturnEmptyListWhenGetNotExistingTodosSuccessfully() throws Exception {
-        when(todoService.getAllTodos()).thenReturn(new ApiResponse(Collections.EMPTY_LIST)
+        when(todoService.getAllTodos(anyString())).thenReturn(new ApiResponse(Collections.EMPTY_LIST)
                 .build(HttpStatus.OK));
 
-        mvc.perform(get("/api/v1/todos"))
+        mvc.perform(get("/api/v1/userId48/todos"))
                 .andExpect(jsonPath("$.message", is("success")))
                 .andExpect(jsonPath("$.data", is(Collections.EMPTY_LIST)))
                 .andExpect(status().isOk());
 
-        verify(todoService).getAllTodos();
+        verify(todoService).getAllTodos(anyString());
     }
 
     @Test
     public void shouldReturnTodoWhenGetExitingTodoByIdSuccessfully() throws Exception {
         Todo todo = new Todo();
-        todo.setId("Id");
+        todo.setTodoId("Id");
         todo.setTask("Todo");
 
         when(todoService.getTodo(anyString())).thenReturn(new ApiResponse(todo).build(HttpStatus.OK));
 
         mvc.perform(get("/api/v1/todos/id"))
                 .andExpect(jsonPath("$.message", is("success")))
-                .andExpect(jsonPath("$.data.id", is("Id")))
+                .andExpect(jsonPath("$.data.todoId", is("Id")))
                 .andExpect(jsonPath("$.data.task", is("Todo")))
                 .andExpect(status().isOk());
 
@@ -95,7 +95,7 @@ public class TodoControllerTest {
     @Test
     public void shouldReturnNotFoundWhenGetNotExitingTodoById() throws Exception {
         Todo todo = new Todo();
-        todo.setId("Id");
+        todo.setTodoId("Id");
         todo.setTask("UpdateTodo");
 
         when(todoService.getTodo(anyString()))
@@ -113,7 +113,7 @@ public class TodoControllerTest {
     @Test
     public void shouldReturnUpdatedTodoWhenUpdateExitingTodoSuccessfully() throws Exception {
         Todo todo = new Todo();
-        todo.setId("Id");
+        todo.setTodoId("Id");
         todo.setTask("UpdateTodo");
 
         when(todoService.editTodo(anyString(), any(Todo.class))).thenReturn(new ApiResponse(todo).build(HttpStatus.OK));
@@ -122,7 +122,7 @@ public class TodoControllerTest {
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(JsonMapper.toJson(todo).orElse("")))
                 .andExpect(jsonPath("$.message", is("success")))
-                .andExpect(jsonPath("$.data.id", is("Id")))
+                .andExpect(jsonPath("$.data.todoId", is("Id")))
                 .andExpect(jsonPath("$.data.task", is("UpdateTodo")))
                 .andExpect(status().isOk());
 
@@ -132,7 +132,7 @@ public class TodoControllerTest {
     @Test
     public void shouldReturnNotFoundWhenUpdateNotExitingTodo() throws Exception {
         Todo todo = new Todo();
-        todo.setId("Id");
+        todo.setTodoId("Id");
         todo.setTask("UpdateTodo");
 
         when(todoService.editTodo(anyString(), any(Todo.class)))
