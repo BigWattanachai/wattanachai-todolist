@@ -121,7 +121,7 @@ public class MessageService {
         if (isMatchTime) {
             String[] timeSprite = timeString.split(":");
             return dateTime.withHourOfDay(Integer.parseInt(timeSprite[0]))
-                    .withMinuteOfHour(Integer.parseInt(timeSprite[2]))
+                    .withMinuteOfHour(Integer.parseInt(timeSprite[1]))
                     .withSecondOfMinute(0).toDate();
         } else {
             return dateTime.withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0).toDate();
