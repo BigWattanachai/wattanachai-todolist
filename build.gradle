@@ -1,31 +1,63 @@
 buildscript {
-	ext {
-		springBootVersion = '2.0.2.RELEASE'
-	}
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-	}
+    ext {
+        springBootVersion = '1.5.9.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'jacoco'
 
 group = 'com.bot'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
-	mavenCentral()
+    mavenCentral()
+}
+
+jacoco {
+    toolVersion = "0.8.1"
+    reportsDir = file("$buildDir/reports/jacoco")
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    exclude: ['com/bot/wattanachaitodolist/WattanachaiTodolistApplication*',
+                              'com/bot/wattanachaitodolist/constant/**',
+                              'com/bot/wattanachaitodolist/domain/**',
+                              'com/bot/wattanachaitodolist/model/**',
+                              'com/bot/wattanachaitodolist/repository/**'
+                    ])
+        })
+    }
 }
 
 
 dependencies {
-	compile('org.springframework.boot:spring-boot-starter-web')
-	compileOnly('org.projectlombok:lombok')
-	testCompile('org.springframework.boot:spring-boot-starter-test')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.springframework.boot:spring-boot-starter-data-mongodb')
+    implementation 'com.linecorp.bot:line-bot-spring-boot:1.16.0'
+    implementation 'com.linecorp.bot:line-bot-servlet:1.16.0'
+    implementation 'com.linecorp.bot:line-bot-model:1.16.0'
+    implementation 'com.linecorp.bot:line-bot-api-client:1.16.0'
+    compileOnly('org.projectlombok:lombok:1.16.20')
+    compileOnly('de.flapdoodle.embed:de.flapdoodle.embed.mongo')
+    testCompile("org.assertj:assertj-core:3.10.0")
+    testCompile('org.springframework.boot:spring-boot-starter-test')
 }
