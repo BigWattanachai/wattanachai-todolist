@@ -4,6 +4,7 @@ import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
 import com.bot.wattanachaitodolist.infra.utils.CommonUtils;
 import com.bot.wattanachaitodolist.service.LineAPIService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpSession;
 import java.util.Arrays;
 
 @Controller
+@Slf4j
 public class TodoWebController {
     private static final String LINE_WEB_LOGIN_STATE = "lineWebLoginState";
     private static final String ACCESS_TOKEN = "accessToken";
@@ -71,6 +73,7 @@ public class TodoWebController {
 
         httpSession.removeAttribute(NONCE);
         IdToken idToken = lineAPIService.idToken(token.id_token);
+        log.info("IdToken : {}", idToken);
 
         model.addAttribute("idToken", idToken);
         return "user/success";
