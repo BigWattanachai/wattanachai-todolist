@@ -4,6 +4,9 @@ line:
     channelToken: RXTZE+nof07W5w1s3b1WaaQ4ujk4RAtlr33YEVWoM1Jqoik4lmhfSp9hmun+c1IeJ5gRA2APohJqCJSVdz2dYuCKYL9Tfq6poCFPA8onS0djcMivJAZR+wqGKwBPC5Ugxr5qzFaw4FjyxXrt2C+pkQdB04t89/1O/w1cDnyilFU=
     handler.path: /callback
 
-#security.ignored: /callback
+linecorp.platform.channel:
+                     channelId: 1581357003
+                     channelSecret: 7d6ea9c26738ef9ae825142b5c59ff80
+                     callbackUrl: https://wattanachai-todolist.herokuapp.com/auth
 
 spring.data.mongodb.uri: mongodb://wattanachai.pra:Bigkmitl10012535*3@ds225010.mlab.com:25010/wattanachaitodo

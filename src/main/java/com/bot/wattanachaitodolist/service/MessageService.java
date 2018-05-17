@@ -48,7 +48,7 @@ public class MessageService {
         log.info("Got text message from {}: {}", messageEvent.getReplyToken(), message.getText());
 
         if ("edit".equalsIgnoreCase(message.getText())) {
-            this.replyText(messageEvent.getReplyToken(), "https://medium.com/@Big.Wattanachai");
+            this.replyText(messageEvent.getReplyToken(), "https://wattanachai-todolist.herokuapp.com/success");
         } else {
             executeCreateTodo(messageEvent.getReplyToken(), messageEvent, message);
         }
