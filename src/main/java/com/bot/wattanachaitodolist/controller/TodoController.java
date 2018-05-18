@@ -35,7 +35,7 @@ public class TodoController {
         AccessToken accessToken = getAccessToken(httpSession);
         if (accessToken != null) {
             IdToken idToken = lineAPIService.idToken(accessToken.id_token);
-            return todoService.getAllTodos(idToken.aud);
+            return todoService.getAllTodos(idToken.sub);
         } else {
             return new ApiResponse("Unauthorized", null).build(HttpStatus.UNAUTHORIZED);
         }
