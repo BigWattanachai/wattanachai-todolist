@@ -1,6 +1,7 @@
 package com.bot.wattanachaitodolist.service;
 
 import com.bot.wattanachaitodolist.domain.Todo;
+import com.bot.wattanachaitodolist.domain.User;
 import com.bot.wattanachaitodolist.model.ApiResponse;
 import com.bot.wattanachaitodolist.repository.TodoRepository;
 import com.bot.wattanachaitodolist.repository.UserRepository;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class TodoService {
@@ -21,10 +25,14 @@ public class TodoService {
     }
 
 
-    public HttpEntity<ApiResponse> getAllTodos(String id) {
-        return userRepository.findByUserId(id).map(it ->
+    public HttpEntity<ApiResponse> getAllTodos(String userId) {
+        return userRepository.findByUserId(userId).map(it ->
                 new ApiResponse(it.getTodoList()).build(HttpStatus.OK))
                 .orElse(new ApiResponse("User not found", null).build(HttpStatus.NOT_FOUND));
+    }
+
+    public List<Todo> getTodosList(String userId) {
+        return userRepository.findByUserId(userId).map(User::getTodoList).orElse(Collections.emptyList());
     }
 
     public HttpEntity<ApiResponse> editTodo(String todoId, Todo todo) {
