@@ -1,6 +1,5 @@
 package com.bot.wattanachaitodolist.controller;
 
-import com.bot.wattanachaitodolist.domain.Todo;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
 import com.bot.wattanachaitodolist.infra.utils.CommonUtils;
@@ -15,13 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpSession;
 import java.util.Arrays;
-import java.util.List;
 
 @Controller
 @Slf4j
 public class TodoWebController {
     private static final String LINE_WEB_LOGIN_STATE = "lineWebLoginState";
-     static final String ACCESS_TOKEN = "accessToken";
+    static final String ACCESS_TOKEN = "accessToken";
     private static final String NONCE = "nonce";
     private LineAPIService lineAPIService;
     private TodoService todoService;
@@ -66,24 +64,21 @@ public class TodoWebController {
     @RequestMapping("/success")
     public String success(HttpSession httpSession, Model model) {
 
-//        AccessToken token = (AccessToken) httpSession.getAttribute(ACCESS_TOKEN);
-//        if (token == null) {
-//            return "redirect:/";
-//        }
-//
-//        if (!lineAPIService.verifyIdToken(token.id_token, (String) httpSession.getAttribute(NONCE))) {
-//            // verify failed
-//            return "redirect:/";
-//        }
+        AccessToken token = (AccessToken) httpSession.getAttribute(ACCESS_TOKEN);
+        if (token == null) {
+            return "redirect:/";
+        }
 
-//        httpSession.removeAttribute(NONCE);
-//        IdToken idToken = lineAPIService.idToken(token.id_token);
-//        log.info("IdToken : {}", idToken);
+        if (!lineAPIService.verifyIdToken(token.id_token, (String) httpSession.getAttribute(NONCE))) {
+            // verify failed
+            return "redirect:/";
+        }
 
-//        List<Todo> todoList = todoService.getTodosList("Ua29303646e29fa757c355ee2ea523e9c");
-        IdToken idToken = new IdToken("","","",1L,1L,"","","");
+        httpSession.removeAttribute(NONCE);
+        IdToken idToken = lineAPIService.idToken(token.id_token);
+        log.info("IdToken : {}", idToken);
+
         model.addAttribute("idToken", idToken);
-//        model.addAttribute("todoList", todoList);
         return "user/success";
     }
 

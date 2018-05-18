@@ -32,13 +32,13 @@ public class TodoController {
 
     @GetMapping("/todos")
     public HttpEntity<ApiResponse> getAllTodos(HttpSession httpSession) {
-//        AccessToken accessToken = getAccessToken(httpSession);
-//        if (accessToken != null) {
-//            IdToken idToken = lineAPIService.idToken(accessToken.id_token);
-            return todoService.getAllTodos("Ua29303646e29fa757c355ee2ea523e9c");
-//        } else {
-//            return new ApiResponse("Unauthorized", null).build(HttpStatus.UNAUTHORIZED);
-//        }
+        AccessToken accessToken = getAccessToken(httpSession);
+        if (accessToken != null) {
+            IdToken idToken = lineAPIService.idToken(accessToken.id_token);
+            return todoService.getAllTodos(idToken.aud);
+        } else {
+            return new ApiResponse("Unauthorized", null).build(HttpStatus.UNAUTHORIZED);
+        }
     }
 
 

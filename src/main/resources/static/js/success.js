@@ -34,6 +34,8 @@ $(document).ready(function () {
 var initTodoList = function () {
     get("../api/v1/todos").done(function (data) {
         $('#todo-list').lobiList({
+            defaultStyle: 'lobilist-success',
+            controls: ['edit'],
             lists: [
                 {
                     itemOptions: {
@@ -43,10 +45,8 @@ var initTodoList = function () {
                         dueDate: '',
                         completed: false
                     },
-                    controls: ['edit'],
                     title: 'TODO',
-                    defaultStyle: 'lobilist-primary',
-                    items: mapToItem(data.data)
+                    items: data.data
                 }
             ]
         });
