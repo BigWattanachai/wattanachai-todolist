@@ -1,9 +1,15 @@
 package com.bot.wattanachaitodolist.controller;
 
 import com.bot.wattanachaitodolist.domain.Todo;
+import com.bot.wattanachaitodolist.domain.TodoOrder;
+import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
+import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
 import com.bot.wattanachaitodolist.model.ApiResponse;
+import com.bot.wattanachaitodolist.service.LineAPIService;
 import com.bot.wattanachaitodolist.service.TodoService;
 import com.bot.wattanachaitodolist.util.JsonMapper;
+import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,16 +23,15 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,11 +40,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class TodoControllerTest {
     @MockBean
     private TodoService todoService;
+
     @MockBean
     private MappingMongoConverter mappingMongoConverter;
 
+    @MockBean
+    private LineAPIService lineAPIService;
+
+
     @Autowired
     private MockMvc mvc;
+
+    private Map<String, Object> sessionAttrsMock;
+
+    @Before
+    public void beforeEach() {
+        sessionAttrsMock = ImmutableMap.of(TodoWebController.ACCESS_TOKEN,
+                AccessToken.builder().id_token("id_token").build());
+        when(lineAPIService.idToken(anyString())).thenReturn(IdToken.builder().sub("userId").build());
+    }
+
+    @Test
+    public void shouldReturnNotAuthorizedWhenGetTodoListWithUnAuthorizedUser() throws Exception {
+
+        mvc.perform(get("/api/v1/todos"))
+                .andExpect(jsonPath("$.message", is("Unauthorized")))
+                .andExpect(status().isUnauthorized());
+
+        verify(todoService, never()).getTodo(anyString());
+        verify(lineAPIService, never()).idToken(anyString());
+    }
 
     @Test
     public void shouldReturnTodosListWhenGetAllExitingTodosSuccessfully() throws Exception {
@@ -49,17 +79,18 @@ public class TodoControllerTest {
         Todo secondTodo = new Todo();
         secondTodo.setCreatedDate(new Date());
         secondTodo.setTask("secondTodo");
+        when(todoService.getAllTodos(anyString()))
+                .thenReturn(new ApiResponse(asList(firstTodo, secondTodo)).build(HttpStatus.OK));
 
-        when(todoService.getAllTodos(anyString())).thenReturn(new ApiResponse(asList(firstTodo, secondTodo))
-                .build(HttpStatus.OK));
-
-        mvc.perform(get("/api/v1/userId48/todos"))
+        mvc.perform(get("/api/v1/todos")
+                .sessionAttrs(sessionAttrsMock))
                 .andExpect(jsonPath("$.message", is("success")))
                 .andExpect(jsonPath("$.data[0].task", is("firstTodo")))
                 .andExpect(jsonPath("$.data[1].task", is("secondTodo")))
                 .andExpect(status().isOk());
 
         verify(todoService).getAllTodos(anyString());
+        verify(lineAPIService).idToken(anyString());
     }
 
     @Test
@@ -67,46 +98,33 @@ public class TodoControllerTest {
         when(todoService.getAllTodos(anyString())).thenReturn(new ApiResponse(Collections.EMPTY_LIST)
                 .build(HttpStatus.OK));
 
-        mvc.perform(get("/api/v1/userId48/todos"))
+        mvc.perform(get("/api/v1/todos")
+                .sessionAttrs(sessionAttrsMock))
                 .andExpect(jsonPath("$.message", is("success")))
                 .andExpect(jsonPath("$.data", is(Collections.EMPTY_LIST)))
                 .andExpect(status().isOk());
 
         verify(todoService).getAllTodos(anyString());
+        verify(lineAPIService).idToken(anyString());
+
     }
 
     @Test
-    public void shouldReturnTodoWhenGetExitingTodoByIdSuccessfully() throws Exception {
-        Todo todo = new Todo();
-        todo.setTodoId("Id");
-        todo.setTask("Todo");
+    public void shouldReturnTodosListWhenUpdateTodosOrderSuccessfully() throws Exception {
+        TodoOrder todoOrder = new TodoOrder();
+        todoOrder.setTodoOrder(asList("id1", "id2"));
+        when(todoService.updateTodoOrder(anyString(), any(TodoOrder.class)))
+                .thenReturn(new ApiResponse("success", todoOrder).build(HttpStatus.OK));
 
-        when(todoService.getTodo(anyString())).thenReturn(new ApiResponse(todo).build(HttpStatus.OK));
-
-        mvc.perform(get("/api/v1/todos/id"))
+        mvc.perform(put("/api/v1/todos/order")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(JsonMapper.toJson(todoOrder).orElse(""))
+                .sessionAttrs(sessionAttrsMock))
                 .andExpect(jsonPath("$.message", is("success")))
-                .andExpect(jsonPath("$.data.todoId", is("Id")))
-                .andExpect(jsonPath("$.data.task", is("Todo")))
                 .andExpect(status().isOk());
 
-        verify(todoService).getTodo(anyString());
-    }
-
-    @Test
-    public void shouldReturnNotFoundWhenGetNotExitingTodoById() throws Exception {
-        Todo todo = new Todo();
-        todo.setTodoId("Id");
-        todo.setTask("UpdateTodo");
-
-        when(todoService.getTodo(anyString()))
-                .thenReturn(new ApiResponse("not found", null).build(HttpStatus.NOT_FOUND));
-
-        mvc.perform(get("/api/v1/todos/id"))
-                .andExpect(jsonPath("$.message", is("not found")))
-                .andExpect(jsonPath("$.data", is(nullValue())))
-                .andExpect(status().is4xxClientError());
-
-        verify(todoService).getTodo(anyString());
+        verify(todoService).updateTodoOrder(anyString(), any(TodoOrder.class));
+        verify(lineAPIService).idToken(anyString());
 
     }
 
@@ -118,7 +136,8 @@ public class TodoControllerTest {
 
         when(todoService.editTodo(anyString(), any(Todo.class))).thenReturn(new ApiResponse(todo).build(HttpStatus.OK));
 
-        mvc.perform(put("/api/v1/todos/id")
+        mvc.perform(patch("/api/v1/todos/id")
+                .sessionAttrs(sessionAttrsMock)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(JsonMapper.toJson(todo).orElse("")))
                 .andExpect(jsonPath("$.message", is("success")))
@@ -127,6 +146,7 @@ public class TodoControllerTest {
                 .andExpect(status().isOk());
 
         verify(todoService).editTodo(anyString(), any(Todo.class));
+        verify(lineAPIService).idToken(anyString());
     }
 
     @Test
@@ -138,7 +158,8 @@ public class TodoControllerTest {
         when(todoService.editTodo(anyString(), any(Todo.class)))
                 .thenReturn(new ApiResponse("not found", null).build(HttpStatus.NOT_FOUND));
 
-        mvc.perform(put("/api/v1/todos/id")
+        mvc.perform(patch("/api/v1/todos/id")
+                .sessionAttrs(sessionAttrsMock)
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(JsonMapper.toJson(todo).orElse("")))
                 .andExpect(jsonPath("$.message", is("not found")))
@@ -146,5 +167,6 @@ public class TodoControllerTest {
                 .andExpect(status().is4xxClientError());
 
         verify(todoService).editTodo(anyString(), any(Todo.class));
+        verify(lineAPIService).idToken(anyString());
     }
 }

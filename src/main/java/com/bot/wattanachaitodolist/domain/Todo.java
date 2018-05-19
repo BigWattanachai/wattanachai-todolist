@@ -18,7 +18,7 @@ public class Todo {
     @LastModifiedDate
     private Date updatedDate;
     private String task;
-    private boolean completed;
+    private Boolean completed;
     private Date date;
-    private boolean important;
+    private Boolean important;
 }

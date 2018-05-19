@@ -1,6 +1,9 @@
 
 package com.bot.wattanachaitodolist.infra.line.api.v2.response;
 
+import lombok.Builder;
+
+@Builder
 public final class AccessToken {
 
     public final String scope;

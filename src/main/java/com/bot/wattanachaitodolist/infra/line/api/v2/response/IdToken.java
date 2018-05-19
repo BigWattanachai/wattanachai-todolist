@@ -1,6 +1,9 @@
 
 package com.bot.wattanachaitodolist.infra.line.api.v2.response;
 
+import lombok.Builder;
+
+@Builder
 public final class IdToken {
     public final String iss;
     public final String sub;
@@ -21,8 +24,5 @@ public final class IdToken {
         this.name = name;
         this.picture = picture;
     }
-
-    ;
-
 }
 

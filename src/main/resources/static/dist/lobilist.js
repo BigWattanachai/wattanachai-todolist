@@ -72,6 +72,7 @@ $(function () {
             if (me.$globalOptions.sortable) {
                 me._enableSorting();
             }
+
             me.resumeEvents();
         },
 
@@ -117,41 +118,28 @@ $(function () {
             return me;
         },
 
-        /**
-         * Update item. If <code>action.update</code> url is provided request is sent to the server.
-         * Server response example: <code>{"success": Boolean}</code>.
-         * If <code>response.success</code> is true item is updated.
-         * Otherwise <code>errorCallback</code> callback is called if it was provided.
-         *
-         * @method updateItem
-         * @param {Object} item  - The item <code>Object</code> to update
-         * @param {Function} errorCallback - The callback which is called when server returned response but
-         * <code>response.success=false</code>
-         * @returns {List}
-         */
+
         updateItem: function (item, errorCallback) {
             var me = this;
             if (me._triggerEvent('beforeItemUpdate', [me, item]) === false) {
                 return me
             }
-            if (me.$globalOptions.actions.update) {
-                $.ajax(me.$globalOptions.actions.update, {
-                    data: item,
-                    method: 'POST'
-                })
-                //res is JSON object of format {"id": Number, "success": Boolean, "msg": String}
-                    .done(function (res) {
-                        if (res.success) {
-                            me._updateItemInList(item);
-                        } else {
-                            if (errorCallback && typeof errorCallback === 'function') {
-                                errorCallback(res)
-                            }
-                        }
-                    });
-            } else {
-                me._updateItemInList(item);
-            }
+            if (item.date)
+                item.date = this._dateToEpoch(item.date)
+
+            $.ajax('../api/v1/todos/' + item.id, {
+                data: JSON.stringify(item),
+                method: 'PATCH',
+                contentType: 'application/json'
+            }).done(function (res) {
+                if (res.message === 'success') {
+                    me._updateItemInList(res.data);
+                } else {
+                    if (errorCallback && typeof errorCallback === 'function') {
+                        errorCallback(res)
+                    }
+                }
+            });
             return me;
         },
 
@@ -193,16 +181,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * If item does not have id, it is considered as new and is added to the list.
-         * If it has id it is updated. If update and insert actions are provided corresponding request is sent to the server
-         *
-         * @method saveOrUpdateItem
-         * @param {Object} item  - The item <code>Object</code>
-         * @param {Function} errorCallback - The callback which is called when server returned response but
-         * <code>response.success=false</code>
-         * @returns {List}
-         */
         saveOrUpdateItem: function (item, errorCallback) {
             var me = this;
             if (item.id) {
@@ -213,12 +191,27 @@ $(function () {
             return me;
         },
 
-        /**
-         * Start title editing
-         *
-         * @method startTitleEditing
-         * @returns {List}
-         */
+        updateOderItem: function (item, errorCallback) {
+            var me = this;
+            $.ajax('../api/v1/todos/order', {
+                data: JSON.stringify({"todoOrder": item}),
+                method: 'PUT',
+                contentType: 'application/json'
+            }).done(function (res) {
+                if (res.message === 'success') {
+                    console.log('success');
+                    // me._updateItemInList(res.data);
+
+                } else {
+                    console.log("errorCallback");
+                    if (errorCallback && typeof errorCallback === 'function') {
+                        errorCallback(res)
+                    }
+                }
+            });
+            return me;
+        },
+
         startTitleEditing: function () {
             var me = this;
             var input = me._createInput();
@@ -232,12 +225,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * Finish title editing
-         *
-         * @method finishTitleEditing
-         * @returns {List}
-         */
         finishTitleEditing: function () {
             var me = this;
             var $input = me.$header.find('input');
@@ -249,12 +236,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * Cancel title editing
-         *
-         * @method cancelTitleEditing
-         * @returns {List}
-         */
         cancelTitleEditing: function () {
             var me = this;
             var $input = me.$header.find('input');
@@ -281,13 +262,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * Start editing of item
-         *
-         * @method editItem
-         * @param {String} id - The id of the item to start updating
-         * @returns {List}
-         */
         editItem: function (id) {
             var me = this;
             var $item = me.$lobiList.$el.find('li[data-id=' + id + ']');
@@ -298,8 +272,28 @@ $(function () {
             $footer.addClass('hide');
             $form[0].id.value = $item.attr('data-id');
             $form[0].title.value = $item.find('.lobilist-item-title').html();
-            // $form[0].description.value = $item.find('.lobilist-item-description').html() || '';
             $form[0].dueDate.value = $item.find('.lobilist-item-duedate').html() || '';
+            return me;
+        },
+
+        checkImportantItem: function (id) {
+            var me = this;
+            var $item = me.$lobiList.$el.find('li[data-id=' + id + ']');
+            var $form = $item.closest('.lobilist').find('.lobilist-add-todo-form');
+            var $footer = $item.closest('.lobilist').find('.lobilist-footer');
+            console.log('checkImportantItem')
+            console.log($item)
+            initTodoList();
+
+            // this._init();
+            console.log($item)
+
+            // $form.removeClass('hide');
+            // $footer.addClass('hide');
+            // $form[0].id.important = $item.attr('data-id');
+            // $form[0].title.value = $item.find('.lobilist-item-title').html();
+            // // $form[0].description.value = $item.find('.lobilist-item-description').html() || '';
+            // $form[0].dueDate.value = $item.find('.lobilist-item-duedate').html() || '';
             return me;
         },
 
@@ -404,7 +398,7 @@ $(function () {
                     'type': 'text',
                     name: 'dueDate',
                     'class': 'form-control',
-                    placeholder: 'Due Date'
+                    placeholder: 'Date'
                 })
             ).appendTo($form);
             var $ft = $('<div class="lobilist-form-footer">');
@@ -439,14 +433,18 @@ $(function () {
         _submitForm: function () {
             var me = this;
             if (!me.$form[0].title.value) {
-                me._showFormError('title', 'Title can not be empty');
+                me._showFormError('title', 'Task cannot be empty');
+                return;
+            }
+            if (!this._validateDateFormat(me.$form[0].dueDate.value).isValid()) {
+                me._showFormError('dueDate', 'Invalid date format');
                 return;
             }
             me.saveOrUpdateItem({
                 id: me.$form[0].id.value,
-                title: me.$form[0].title.value,
+                task: me.$form[0].title.value,
                 // description:me. $form[0].description.value,
-                dueDate: me.$form[0].dueDate.value
+                date: me.$form[0].dueDate.value
             });
             me.$form.addClass('hide');
         },
@@ -509,14 +507,9 @@ $(function () {
                 'type': 'checkbox'
             });
 
-            // $item.prop('checked', true);
             $item.change(function () {
                 me._onCheckboxChange(this);
             });
-
-            $item.prop('checked', true);
-
-            // me._triggerEvent('afterMarkAsDone', [me, this])
 
             return $('<label>', {
                 'class': 'checkbox-inline lobilist-check'
@@ -526,16 +519,28 @@ $(function () {
         _onCheckboxChange: function (checkbox) {
             var me = this;
             var $this = $(checkbox);
-            console.log(me)
-            console.log('==================')
-            console.log(checkbox)
             if ($this.prop('checked')) {
+                me.saveOrUpdateItem({
+                    'id': $this.closest('.lobilist-item').attr('data-id'),
+                    'completed': true
+                })
                 me._triggerEvent('afterMarkAsDone', [me, $this])
             } else {
+                me.saveOrUpdateItem({
+                    'id': $this.closest('.lobilist-item').attr('data-id'),
+                    'completed': false
+                })
                 me._triggerEvent('afterMarkAsUndone', [me, $this])
             }
-
             $this.closest('.lobilist-item').toggleClass('item-done');
+        },
+
+        _onImportantItemClick: function (id) {
+            var me = this;
+            me.saveOrUpdateItem({
+                'id': id,
+                'important': !me.$items[id].important
+            });
         },
 
         _createDropdownForStyleChange: function () {
@@ -685,12 +690,67 @@ $(function () {
                 forcePlaceholderSize: true,
                 opacity: 0.9,
                 revert: 70,
+                start: function (event, ui) {
+                    console.log('start')
+                    var todoItem = me.$items[ui.item.attr('data-id')];
+                    ui.item.data("important", todoItem.important);
+                    ui.item.data("todoId", ui.item.attr('data-id'));
+
+                },
                 update: function (event, ui) {
-                    me._triggerEvent('afterItemReorder', [me, ui.item]);
+                    console.log('update')
+
+                    if (ui.item.data("important")) {
+                        $(this).sortable('cancel');
+                    } else {
+                        me._triggerEvent('afterItemReorder', [me, ui.item]);
+                    }
+                },
+                change: function (event, ui) {
+                    console.log('change')
+                    // if (ui.item.data("important")) {
+                    //     $(this).sortable('cancel');
+                    // } else {
+                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
+                    // }
+                }, drop: function (event, ui) {
+                    console.log('drop')
+                    // if (ui.item.data("important")) {
+                    //     $(this).sortable('cancel');
+                    // } else {
+                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
+                    // }
+                },
+                sort: function (event, ui) {
+                    console.log('sort')
+                    // if (ui.item.data("important")) {
+                    //     $(this).sortable('cancel');
+                    // } else {
+                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
+                    // }
+                },
+                stop: function (event, ui) {
+                    console.log('stop')
+                    var itemOrder = $(this).sortable("toArray", {attribute: 'data-id'});
+                    console.log(itemOrder)
+                    console.log(me.$items[ui.item.data("todoId")])
+                    me.updateOderItem(itemOrder);
+                    $(this).sortable("refresh");
+
                 }
             });
         },
+        _epochToDate: function (epoch) {
+            return moment.utc(epoch).format('M/D/YY HH:mm')
 
+        },
+        _dateToEpoch: function (date) {
+            return moment.utc(date, "M/D/YY HH:mm'").valueOf()
+
+        },
+        _validateDateFormat: function (date) {
+            return moment.utc(date, 'M/D/YY HH:mm')
+        },
         _addItemToList: function (item) {
             var me = this;
             var $li = $('<li>', {
@@ -701,20 +761,15 @@ $(function () {
                 'class': 'lobilist-item-title',
                 'html': item.task
             }));
-            // if (item.task) {
-            //     $li.append($('<div>', {
-            //         'class': 'lobilist-item-description',
-            //         html: ''
-            //     }));
-            // }
+
             if (item.date) {
                 $li.append($('<div>', {
                     'class': 'lobilist-item-duedate',
-                    html: item.date
+                    html: this._epochToDate(item.date)
                 }));
             }
             $li = me._addItemControls($li, item);
-            if (item.done) {
+            if (item.completed) {
                 $li.find('input[type=checkbox]').prop('checked', true);
                 $li.addClass('item-done');
             }
@@ -729,9 +784,7 @@ $(function () {
         _addItemControls: function ($li, item) {
             var me = this;
             if (me.$options.useCheckboxes) {
-                // $li.append(me._createCheckbox());
-                console.log('----')
-                console.log('----')
+                $li.append(me._createCheckbox());
             }
             var $itemControlsDiv = $('<div>', {
                 'class': 'todo-actions'
@@ -745,25 +798,18 @@ $(function () {
                     me.editItem($(this).closest('li').data('id'));
                 }));
             }
-
             if (me.$options.enableImportant) {
-
+                var importantHtml = '<i class="star glyphicon glyphicon-star-empty"></i>';
                 if (item.important) {
-                    $itemControlsDiv.append($('<div>', {
-                        'class': 'important-todo todo-action',
-                        html: '<i class="star glyphicon glyphicon-star"></i>'
-                    }).click(function () {
-                        $("i", this).toggleClass("glyphicon-star glyphicon-star-empty");
-                        me._onImportantItemClick($(this).closest('li').data('lobiListItem'));
-                    }));
-                } else {
-                    $itemControlsDiv.append($('<div>', {
-                        'class': 'important-todo todo-action',
-                        html: '<i class="star glyphicon glyphicon-star-empty"></i>'
-                    }).click(function () {
-                        $("i", this).toggleClass("glyphicon-star glyphicon-star-empty");
-                    }));
+                    importantHtml = '<i class="star glyphicon glyphicon-star"></i>';
                 }
+                $itemControlsDiv.append($('<div>', {
+                    'class': 'important-todo todo-action',
+                    html: importantHtml
+                }).click(function () {
+                    $("i", this).toggleClass("glyphicon-star glyphicon-star-empty");
+                    me._onImportantItemClick($(this).closest('li').data('id'));
+                }));
             }
 
             $li.append($('<div>', {
@@ -775,26 +821,20 @@ $(function () {
         _onDeleteItemClick: function (item) {
             this.deleteItem(item);
         },
-        _onImportantItemClick: function (item) {
-            this.deleteItem(item);
-        },
-
         _updateItemInList: function (item) {
             var me = this;
-            var $li = me.$lobiList.$el.find('li[data-id="' + item.id + '"]');
-            $li.find('input[type=checkbox]').prop('checked', item.done);
-            $li.find('.lobilist-item-title').html(item.title);
-            $li.find('.lobilist-item-description').remove();
+            var $li = me.$lobiList.$el.find('li[data-id="' + item.todoId + '"]');
+            $li.find('input[type=checkbox]').prop('checked', item.completed);
+            $li.find('.lobilist-item-title').html(item.task);
             $li.find('.lobilist-item-duedate').remove();
+            if (item.date) {
+                $li.append('<div class="lobilist-item-duedate">' + this._epochToDate(item.date) + '</div>');
+            }
 
-            if (item.description) {
-                $li.append('<div class="lobilist-item-description">' + item.description + '</div>');
-            }
-            if (item.dueDate) {
-                $li.append('<div class="lobilist-item-duedate">' + item.dueDate + '</div>');
-            }
             $li.data('lobiListItem', item);
             $.extend(me.$items[item.id], item);
+
+
             me._triggerEvent('afterItemUpdate', [me, item]);
         },
 
@@ -1198,7 +1238,11 @@ $(function () {
          * @param {List} The <code>List</code> instance
          * @param {Object} The jQuery object of item
          */
-        afterItemReorder: null,
+        afterItemReorder: function (list, item) {
+            // console.log('afterItemReorder');
+            // console.log(list);
+            // console.log(item);
+        },
 
         /**
          * @event afterMarkAsDone
@@ -1218,20 +1262,27 @@ $(function () {
 
 
         /**
-         * @event afterMarkAsDone
+         * @event afterStarMarkAsDone
          * Fires after item is marked as done.
          * @param {List} The <code>List</code> instance
          * @param {Object} The jQuery checkbox object
          */
-        afterStarMarkAsDone: null,
+        afterStarMarkAsDone: function (list, it) {
+            console.log('afterStarMarkAsDone')
+            console.log(list)
+
+        },
 
         /**
-         * @event afterMarkAsUndone
+         * @event afterStarMarkAsUndone
          * Fires after item is marked as undone
          * @param {List} The <code>List</code> instance
          * @param {Object} The jQuery checkbox object
          */
-        afterStarMarkAsUndone: null,
+        afterStarMarkAsUndone: function (list, it) {
+            console.log('afterStarMarkAsUndone')
+            console.log(list)
+        },
 
         /**
          * @event beforeAjaxSent

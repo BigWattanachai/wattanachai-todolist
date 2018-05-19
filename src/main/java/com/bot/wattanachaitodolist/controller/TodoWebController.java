@@ -1,7 +1,6 @@
 package com.bot.wattanachaitodolist.controller;
 
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
-import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
 import com.bot.wattanachaitodolist.infra.utils.CommonUtils;
 import com.bot.wattanachaitodolist.service.LineAPIService;
 import com.bot.wattanachaitodolist.service.TodoService;
@@ -64,6 +63,7 @@ public class TodoWebController {
     @RequestMapping("/success")
     public String success(HttpSession httpSession, Model model) {
 
+
         AccessToken token = (AccessToken) httpSession.getAttribute(ACCESS_TOKEN);
         if (token == null) {
             return "redirect:/";
@@ -74,11 +74,6 @@ public class TodoWebController {
             return "redirect:/";
         }
 
-        httpSession.removeAttribute(NONCE);
-        IdToken idToken = lineAPIService.idToken(token.id_token);
-        log.info("IdToken : {}", idToken);
-
-        model.addAttribute("idToken", idToken);
         return "user/success";
     }
 
