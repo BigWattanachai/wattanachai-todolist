@@ -53,9 +53,9 @@ public class MessageService {
         Optional<Tuple<String, Date>> taskAndDateTuper = TodoMessageUtil.getTaskAndDateTimeTuper(message.getText());
         if (taskAndDateTuper.isPresent()) {
             final String userId = messageEvent.getSource().getUserId();
-            User userResult = userRepository.findByUserId(userId).map(it -> updateUser(taskAndDateTuper.get(), it))
+            userRepository.findByUserId(userId).map(it -> updateUser(taskAndDateTuper.get(), it))
                     .orElseGet(() -> createNewUser(taskAndDateTuper.get(), userId));
-            String response = "Your todo has been created successfully : " + userResult;
+            String response = "Your todo has been created successfully : " + message.getText();
             this.replyText(replyToken, response);
         } else {
             this.replyText(replyToken, "Please enter correct todo format.");

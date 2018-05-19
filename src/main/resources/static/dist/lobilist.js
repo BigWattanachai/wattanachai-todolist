@@ -1,22 +1,6 @@
-/**
- * @name LobiList - Responsive jQuery todo list plugin
- * LobiList is todo list jquery plugin. Support multiple list with different styles, communication to backend, drag & drop of todos
- *
- * @author Zura Sekhniashvili <zurasekhniashvili@gmail.com>
- * @version 1.0.0
- * @licence MIT
- */
 $(function () {
 
     var LIST_COUNTER = 0;
-    /**
-     * List class
-     *
-     * @class
-     * @param {Object} $lobiList - jQuery element
-     * @param {Object} options - Options for <code>List</code> 'class'
-     * @constructor
-     */
     var List = function ($lobiList, options) {
         this.$lobiList = $lobiList;
         this.$options = options;
@@ -42,10 +26,6 @@ $(function () {
 
         eventsSuppressed: false,
 
-        /**
-         *
-         * @private
-         */
         _init: function () {
             var me = this;
             me.suppressEvents();
@@ -76,18 +56,6 @@ $(function () {
             me.resumeEvents();
         },
 
-        /**
-         * Add item. If <code>action.insert</code> url is provided request is sent to the server.
-         * Server response example: <code>{"success": Boolean}</code>.
-         * If <code>response.success</code> is true item is added.
-         * Otherwise <code>errorCallback</code> callback is called if it was provided.
-         *
-         * @method addItem
-         * @param {Object} item - The item <code>Object</code>
-         * @param {Function} errorCallback - The callback which is called when server returned response but
-         * <code>response.success=false</code>
-         * @returns {List}
-         */
         addItem: function (item, errorCallback) {
             var me = this;
             if (me._triggerEvent('beforeItemAdd', [me, item]) === false) {
@@ -100,7 +68,6 @@ $(function () {
                     data: item,
                     method: 'POST'
                 })
-                //res is JSON object of format {"success": Boolean, "id": Number, "msg": String}
                     .done(function (res) {
                         if (res.success) {
                             item.id = res.id;
@@ -118,14 +85,13 @@ $(function () {
             return me;
         },
 
-
         updateItem: function (item, errorCallback) {
             var me = this;
             if (me._triggerEvent('beforeItemUpdate', [me, item]) === false) {
                 return me
             }
             if (item.date)
-                item.date = this._dateToEpoch(item.date)
+                item.date = this._dateToEpoch(item.date);
 
             $.ajax('../api/v1/todos/' + item.id, {
                 data: JSON.stringify(item),
@@ -140,44 +106,6 @@ $(function () {
                     }
                 }
             });
-            return me;
-        },
-
-        /**
-         * Delete item from the list. If <code>action.delete</code> url is provided request is sent to the server.
-         * Server response example: <code>{"success": Boolean}</code>
-         * If <code>response.success=true</code> item is deleted from the list and <code>afterItemDelete</code> event
-         * if triggered. Otherwise <code>errorCallback</code> callback is called if it was provided.
-         *
-         * @method deleteItem
-         * @param {Object} item - The item <code>Object</code> to delete
-         * @param {Function} errorCallback - The callback which is called when server returned response but
-         * <code>response.success=false</code>
-         * @returns {List}
-         */
-        deleteItem: function (item, errorCallback) {
-            var me = this;
-            if (me._triggerEvent('beforeItemDelete', [me, item]) === false) {
-                return me
-            }
-            if (me.$globalOptions.actions.delete) {
-                return me._sendAjax(me.$globalOptions.actions.delete, {
-                    data: item,
-                    method: 'POST'
-                })
-                //res is JSON object of format
-                    .done(function (res) {
-                        if (res.success) {
-                            me._removeItemFromList(item);
-                        } else {
-                            if (errorCallback && typeof errorCallback === 'function') {
-                                errorCallback(res)
-                            }
-                        }
-                    });
-            } else {
-                me._removeItemFromList(item);
-            }
             return me;
         },
 
@@ -199,11 +127,8 @@ $(function () {
                 contentType: 'application/json'
             }).done(function (res) {
                 if (res.message === 'success') {
-                    console.log('success');
-                    // me._updateItemInList(res.data);
-
+                    console.log("updateOderItem success");
                 } else {
-                    console.log("errorCallback");
                     if (errorCallback && typeof errorCallback === 'function') {
                         errorCallback(res)
                     }
@@ -248,12 +173,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * Remove list
-         *
-         * @method remove
-         * @returns {List} - Just removed <code>List</code> instance
-         */
         remove: function () {
             var me = this;
             me.$lobiList.$lists.splice(me.$el.index(), 1);
@@ -275,41 +194,11 @@ $(function () {
             $form[0].dueDate.value = $item.find('.lobilist-item-duedate').html() || '';
             return me;
         },
-
-        checkImportantItem: function (id) {
-            var me = this;
-            var $item = me.$lobiList.$el.find('li[data-id=' + id + ']');
-            var $form = $item.closest('.lobilist').find('.lobilist-add-todo-form');
-            var $footer = $item.closest('.lobilist').find('.lobilist-footer');
-            console.log('checkImportantItem')
-            console.log($item)
-            initTodoList();
-
-            // this._init();
-            console.log($item)
-
-            // $form.removeClass('hide');
-            // $footer.addClass('hide');
-            // $form[0].id.important = $item.attr('data-id');
-            // $form[0].title.value = $item.find('.lobilist-item-title').html();
-            // // $form[0].description.value = $item.find('.lobilist-item-description').html() || '';
-            // $form[0].dueDate.value = $item.find('.lobilist-item-duedate').html() || '';
-            return me;
-        },
-
-        /**
-         * Suppress events. None of the events will be triggered until you call <code>resumeEvents</code>
-         * @returns {List}
-         */
         suppressEvents: function () {
             this.eventsSuppressed = true;
             return this;
         },
 
-        /**
-         * Resume all events.
-         * @returns {List}
-         */
         resumeEvents: function () {
             this.eventsSuppressed = false;
             return this;
@@ -385,14 +274,6 @@ $(function () {
                     placeholder: 'TODO title'
                 })
             ).appendTo($form);
-            // $('<div class="form-group">').append(
-            //     $('<textarea>', {
-            //         rows: '2',
-            //         name: 'description',
-            //         'class': 'form-control',
-            //         'placeholder': 'TODO description'
-            //     })
-            // ).appendTo($form);
             $('<div class="form-group">').append(
                 $('<input>', {
                     'type': 'text',
@@ -412,7 +293,6 @@ $(function () {
                 html: '<i class="glyphicon glyphicon-remove-circle"></i>'
             }).click(function () {
                 $form.addClass('hide');
-                // me.$footer.removeClass('hide');
             }).appendTo($ft);
             $ft.appendTo($form);
 
@@ -443,7 +323,6 @@ $(function () {
             me.saveOrUpdateItem({
                 id: me.$form[0].id.value,
                 task: me.$form[0].title.value,
-                // description:me. $form[0].description.value,
                 date: me.$form[0].dueDate.value
             });
             me.$form.addClass('hide');
@@ -523,13 +402,13 @@ $(function () {
                 me.saveOrUpdateItem({
                     'id': $this.closest('.lobilist-item').attr('data-id'),
                     'completed': true
-                })
+                });
                 me._triggerEvent('afterMarkAsDone', [me, $this])
             } else {
                 me.saveOrUpdateItem({
                     'id': $this.closest('.lobilist-item').attr('data-id'),
                     'completed': false
-                })
+                });
                 me._triggerEvent('afterMarkAsUndone', [me, $this])
             }
             $this.closest('.lobilist-item').toggleClass('item-done');
@@ -691,63 +570,45 @@ $(function () {
                 opacity: 0.9,
                 revert: 70,
                 start: function (event, ui) {
-                    console.log('start')
                     var todoItem = me.$items[ui.item.attr('data-id')];
                     ui.item.data("important", todoItem.important);
                     ui.item.data("todoId", ui.item.attr('data-id'));
-
+                    ui.item.data("oldIndex", ui.item.index());
                 },
                 update: function (event, ui) {
-                    console.log('update')
-
-                    if (ui.item.data("important")) {
+                    $(this).sortable('refresh');
+                    var todoList = me._mapObjectToList(me.$items);
+                    var importantCount = todoList.filter(function (element) {
+                        return element.important === true;
+                    });
+                    if (ui.item.index() < importantCount.length) {
                         $(this).sortable('cancel');
-                    } else {
-                        me._triggerEvent('afterItemReorder', [me, ui.item]);
                     }
                 },
-                change: function (event, ui) {
-                    console.log('change')
-                    // if (ui.item.data("important")) {
-                    //     $(this).sortable('cancel');
-                    // } else {
-                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
-                    // }
-                }, drop: function (event, ui) {
-                    console.log('drop')
-                    // if (ui.item.data("important")) {
-                    //     $(this).sortable('cancel');
-                    // } else {
-                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
-                    // }
-                },
-                sort: function (event, ui) {
-                    console.log('sort')
-                    // if (ui.item.data("important")) {
-                    //     $(this).sortable('cancel');
-                    // } else {
-                    //     me._triggerEvent('afterItemReorder', [me, ui.item]);
-                    // }
-                },
                 stop: function (event, ui) {
-                    console.log('stop')
                     var itemOrder = $(this).sortable("toArray", {attribute: 'data-id'});
-                    console.log(itemOrder)
-                    console.log(me.$items[ui.item.data("todoId")])
-                    me.updateOderItem(itemOrder);
-                    $(this).sortable("refresh");
-
+                    if (ui.item.data("oldIndex") !== ui.item.index())
+                        me.updateOderItem(itemOrder);
                 }
             });
         },
+
+        _mapObjectToList: function (objectData) {
+            return $.map(objectData, function (value, index) {
+                return [value];
+            });
+        },
+
         _epochToDate: function (epoch) {
             return moment.utc(epoch).format('M/D/YY HH:mm')
 
         },
+
         _dateToEpoch: function (date) {
             return moment.utc(date, "M/D/YY HH:mm'").valueOf()
 
         },
+
         _validateDateFormat: function (date) {
             return moment.utc(date, 'M/D/YY HH:mm')
         },
@@ -821,6 +682,7 @@ $(function () {
         _onDeleteItemClick: function (item) {
             this.deleteItem(item);
         },
+
         _updateItemInList: function (item) {
             var me = this;
             var $li = me.$lobiList.$el.find('li[data-id="' + item.todoId + '"]');
@@ -830,11 +692,8 @@ $(function () {
             if (item.date) {
                 $li.append('<div class="lobilist-item-duedate">' + this._epochToDate(item.date) + '</div>');
             }
-
             $li.data('lobiListItem', item);
-            $.extend(me.$items[item.id], item);
-
-
+            $.extend(me.$items[item.todoId], item);
             me._triggerEvent('afterItemUpdate', [me, item]);
         },
 
@@ -848,34 +707,10 @@ $(function () {
             } else {
                 return me.$el.trigger(type, data);
             }
-        },
-
-        _removeItemFromList: function (item) {
-            var me = this;
-            me.$lobiList.$el.find('li[data-id=' + item.id + ']').remove();
-            me._triggerEvent('afterItemDelete', [me, item]);
-        },
-
-        _sendAjax: function (url, params) {
-            var me = this;
-            return $.ajax(url, me._beforeAjaxSent(params))
-        },
-
-        _beforeAjaxSent: function (params) {
-            var me = this;
-            var eventParams = me._triggerEvent('beforeAjaxSent', [me, params]);
-            return $.extend({}, params, eventParams || {});
         }
     };
 //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-    /**
-     * LobiList class
-     *
-     * @param {Object} $el - jQuery element
-     * @param {Object} options - Options for <code>LobiList</code> 'class'
-     * @constructor
-     */
     var LobiList = function ($el, options) {
         this.$el = $el;
         this.init(options);
@@ -905,12 +740,6 @@ $(function () {
             me.resumeEvents();
         },
 
-        /**
-         *
-         * @param options
-         * @returns {*}
-         * @private
-         */
         _processInput: function (options) {
             options = $.extend({}, $.fn.lobiList.DEFAULT_OPTIONS, options);
             if (options.actions.load) {
@@ -923,9 +752,6 @@ $(function () {
             return options;
         },
 
-        /**
-         * @private
-         */
         _createLists: function () {
             var me = this;
             for (var i = 0; i < me.$options.lists.length; i++) {
@@ -934,10 +760,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * @private
-         * @returns {LobiList}
-         */
         _handleSortable: function () {
             var me = this;
             if (me.$options.sortable) {
@@ -959,14 +781,6 @@ $(function () {
             return me;
         },
 
-        /**
-         * Add new list
-         *
-         * @public
-         * @method addList
-         * @param {List|Object} list - The <code>List</code> instance or <code>Object</code>
-         * @returns {List} Just added <code>List</code> instance
-         */
         addList: function (list) {
             var me = this;
             if (!(list instanceof List)) {
@@ -981,13 +795,6 @@ $(function () {
             return list;
         },
 
-        /**
-         * Destroy the <code>LobiList</code>.
-         *
-         * @public
-         * @method destroy
-         * @returns {LobiList}
-         */
         destroy: function () {
             var me = this;
             if (me._triggerEvent('beforeDestroy', [me]) !== false) {
@@ -1008,23 +815,9 @@ $(function () {
             return me;
         },
 
-        /**
-         * Get next id which will be assigned to new item
-         *
-         * @public
-         * @method getNextId
-         * @returns {Number}
-         */
         getNextId: function () {
             return this._nextId++;
         },
-
-        /**
-         *
-         * @param listOptions
-         * @returns {*}
-         * @private
-         */
         _processListOptions: function (listOptions) {
             var me = this;
             listOptions = $.extend({}, me.$options.listsOptions, listOptions);
@@ -1047,12 +840,6 @@ $(function () {
             return this;
         },
 
-        /**
-         * @param type
-         * @param data
-         * @returns {*}
-         * @private
-         */
         _triggerEvent: function (type, data) {
             var me = this;
             if (me.eventsSuppressed) {
@@ -1124,192 +911,27 @@ $(function () {
         // Whether to show lists on single line or not
         onSingleLine: true,
 
-        // Events
-        /**
-         * @event init
-         * Fires when <code>LobiList</code> is initialized
-         * @param {LobiList} The <code>LobiList</code> instance
-         */
         init: null,
-
-        /**
-         * @event beforeDestroy
-         * Fires before <code>Lobilist</code> is destroyed. Return false if you do not want <code>LobiList</code> to be destroyed.
-         * @param {LobiList} The <code>LobiList</code> to be destroyed
-         */
         beforeDestroy: null,
-
-        /**
-         * @event afterDestroy
-         * Fires after <code>Lobilist</code> is destroyed.
-         * @param {LobiList} The destroyed <code>LobiList</code> instance
-         */
         afterDestroy: null,
-
-        /**
-         * @event beforeListAdd
-         * Fires before <code>List</code> is added to <code>LobiList</code>. Return false to prevent adding list.
-         * @param {LobiList} The <code>LobiList</code> instance
-         * @param {List} The <code>List</code> instance to be added
-         */
         beforeListAdd: null,
-
-        /**
-         * @event afterListAdd
-         * Fires after <code>List</code> is added to <code>LobiList</code>.
-         * @param {LobiList} The <code>LobiList</code> instance
-         * @param {List} Just added <code>List</code> instance
-         */
         afterListAdd: null,
-
-        /**
-         * @event beforeListRemove
-         * Fires before <code>List</code> is removed. Returning false will prevent removing the list
-         * @param {List} The <code>List</code> to be removed
-         */
         beforeListRemove: null,
-
-        /**
-         * @event afterListRemove
-         * Fires after <code>List</code> is removed
-         * @param {List} The remove <code>List</code>
-         */
         afterListRemove: null,
-
-        /**
-         * @event beforeItemAdd
-         * Fires before item is added in <code>List</code>. Return false if you want to prevent removing item
-         * @param {List} The <code>List</code> in which the item is going to be added
-         * @param {Object} The item object
-         */
         beforeItemAdd: null,
-
-        /**
-         * @event afterItemAdd
-         * Fires after item is added in <code>List</code>
-         * @param {List} The <code>List</code> in which the item is added
-         * @param {Object} The item object
-         */
         afterItemAdd: null,
-
-        /**
-         * @event beforeItemUpdate
-         * Fires before item is updated. Returning false will prevent updating item
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The item object which is going to be updated
-         */
         beforeItemUpdate: null,
-
-        /**
-         * @event afterItemUpdate
-         * Fires after item is updated
-         * @param {List} The <code>List</code> object
-         * @param {Object} The updated item object
-         */
         afterItemUpdate: null,
-
-        /**
-         * @event beforeItemDelete
-         * Fires before item is deleted. Returning false will prevent deleting the item
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The item object to be deleted
-         */
         beforeItemDelete: null,
-
-        /**
-         * @event afterItemDelete
-         * Fires after item is deleted.
-         * @param {List} The <code>List</code> object
-         * @param {Object} The deleted item object
-         */
         afterItemDelete: null,
-
-        /**
-         * @event afterListReorder
-         * Fires after <code>List</code> position is changed among its siblings
-         * @param {LobiList} The <code>LobiList</code> instance
-         * @param {List} The <code>List</code> instance which changed its position
-         */
         afterListReorder: null,
-
-        /**
-         * @event afterItemReorder
-         * Fires after item position is changed (it is reordered) in list
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jQuery object of item
-         */
-        afterItemReorder: function (list, item) {
-            // console.log('afterItemReorder');
-            // console.log(list);
-            // console.log(item);
-        },
-
-        /**
-         * @event afterMarkAsDone
-         * Fires after item is marked as done.
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jQuery checkbox object
-         */
+        afterItemReorder: null,
         afterMarkAsDone: null,
-
-        /**
-         * @event afterMarkAsUndone
-         * Fires after item is marked as undone
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jQuery checkbox object
-         */
         afterMarkAsUndone: null,
-
-
-        /**
-         * @event afterStarMarkAsDone
-         * Fires after item is marked as done.
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jQuery checkbox object
-         */
-        afterStarMarkAsDone: function (list, it) {
-            console.log('afterStarMarkAsDone')
-            console.log(list)
-
-        },
-
-        /**
-         * @event afterStarMarkAsUndone
-         * Fires after item is marked as undone
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jQuery checkbox object
-         */
-        afterStarMarkAsUndone: function (list, it) {
-            console.log('afterStarMarkAsUndone')
-            console.log(list)
-        },
-
-        /**
-         * @event beforeAjaxSent
-         * Fires before ajax call is sent to backend. This event is very useful is you want to add default parameters
-         * or headers to every request. Such as CSRF token parameter or Access Token header
-         * @param {List} The <code>List</code> instance
-         * @param {Object} The jquery ajax parameters object. You can add additional headers or parameters
-         * to this object and must return the object which will be used for sending request
-         */
+        afterStarMarkAsDone: null,
+        afterStarMarkAsUndone: null,
         beforeAjaxSent: null,
-
-        /**
-         * @event styleChange
-         * Fires when list style is changed
-         * @param {List} The <code>List</code> instance
-         * @param {String} Old class name
-         * @param {String} New class name
-         */
         styleChange: null,
-
-        /**
-         * @event titleChange
-         * Fires when list title is change
-         * @param {List} The <code>List</code> instance
-         * @param {String} Old title name
-         * @param {String} New title name
-         */
         titleChange: null
     };
 });
