@@ -45,8 +45,10 @@ jacocoTestReport {
                               'com/bot/wattanachaitodolist/model/**',
                               'com/bot/wattanachaitodolist/repository/**',
                               'com/bot/wattanachaitodolist/infra/**',
+                              'com/bot/wattanachaitodolist/eventHandler/**',
                               'com/bot/wattanachaitodolist/controller/TodoWebController*',
                               'com/bot/wattanachaitodolist/service/LineAPIService*',
+                              'com/bot/wattanachaitodolist/service/MessageService*',
                     ])
         })
     }

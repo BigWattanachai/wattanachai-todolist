@@ -27,7 +27,7 @@ public class TodoMessageUtil {
                 Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
                 return Optional.of(new Tuple<>(task, date));
             } else {
-                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
+                Boolean isMatchDate = RegexUtil.patternMatch(regexDate, dateString).matches();
                 if (isMatchDate) {
                     DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
                     DateTime dateTime = formatter.parseDateTime(dateString);
@@ -47,7 +47,7 @@ public class TodoMessageUtil {
                 Date date = setDefaultTimeToDate(dateTime);
                 return Optional.of(new Tuple<>(task, date));
             } else {
-                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
+                Boolean isMatchDate = RegexUtil.patternMatch(regexDate, dateString).matches();
                 if (isMatchDate) {
                     DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
                     DateTime dateTime = formatter.parseDateTime(dateString);
@@ -60,7 +60,7 @@ public class TodoMessageUtil {
     }
 
     private static Date getDateByTimeStringAndDateTime(String timeString, DateTime dateTime) {
-        Boolean isMatchTime = RegexUtils.patternMatch(regexTime, timeString).matches();
+        Boolean isMatchTime = RegexUtil.patternMatch(regexTime, timeString).matches();
         if (isMatchTime) {
             String[] timeSprite = timeString.split(":");
             return dateTime.withHourOfDay(Integer.parseInt(timeSprite[0]))

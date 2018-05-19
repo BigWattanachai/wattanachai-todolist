@@ -25,9 +25,6 @@ import java.util.concurrent.ExecutionException;
 @Service
 @Slf4j
 public class MessageService {
-    private static final String regexDate = "^[0-3]?[0-9]/[0-3]?[0-9]/[0-3]?[0-9]";
-    private static final String regexTime = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
-
     private UserRepository userRepository;
     private TodoRepository todoRepository;
     private LineMessagingClient lineMessagingClient;

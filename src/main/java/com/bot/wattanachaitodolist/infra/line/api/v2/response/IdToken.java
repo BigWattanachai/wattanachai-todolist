@@ -1,4 +1,3 @@
-
 package com.bot.wattanachaitodolist.infra.line.api.v2.response;
 
 import lombok.Builder;
