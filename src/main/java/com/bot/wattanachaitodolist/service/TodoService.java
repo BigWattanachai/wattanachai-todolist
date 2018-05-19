@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class TodoService {
@@ -27,8 +28,14 @@ public class TodoService {
 
     public HttpEntity<ApiResponse> getAllTodos(String userId) {
         return userRepository.findByUserId(userId).map(it ->
-                new ApiResponse(it.getTodoList()).build(HttpStatus.OK))
+                new ApiResponse(priorityTodo(it.getTodoList())).build(HttpStatus.OK))
                 .orElse(new ApiResponse("User not found", null).build(HttpStatus.NOT_FOUND));
+    }
+
+    private List<Todo> priorityTodo(List<Todo> todoList) {
+        Stream<Todo> stream1 = todoList.stream().filter(Todo::getImportant);
+        Stream<Todo> stream2 = todoList.stream().filter(it -> !it.getImportant());
+        return Stream.concat(stream1, stream2).collect(Collectors.toList());
     }
 
     public HttpEntity<ApiResponse> editTodo(String todoId, Todo todo) {
