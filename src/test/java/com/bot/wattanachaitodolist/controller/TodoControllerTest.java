@@ -2,6 +2,7 @@ package com.bot.wattanachaitodolist.controller;
 
 import com.bot.wattanachaitodolist.domain.Todo;
 import com.bot.wattanachaitodolist.domain.TodoOrder;
+import com.bot.wattanachaitodolist.exception.NotFoundException;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
 import com.bot.wattanachaitodolist.model.ApiResponse;
@@ -125,7 +126,6 @@ public class TodoControllerTest {
 
         verify(todoService).updateTodoOrder(anyString(), any(TodoOrder.class));
         verify(lineAPIService).idToken(anyString());
-
     }
 
     @Test
@@ -167,6 +167,24 @@ public class TodoControllerTest {
                 .andExpect(status().is4xxClientError());
 
         verify(todoService).editTodo(anyString(), any(Todo.class));
+        verify(lineAPIService).idToken(anyString());
+    }
+
+    @Test
+    public void shouldReturnNotFoundWhenUpdateTodosOrderWithNotExistingUser() throws Exception {
+        TodoOrder todoOrder = new TodoOrder();
+        todoOrder.setTodoOrder(asList("id1", "id2"));
+        doThrow(new NotFoundException("User not found"))
+                .when(todoService).updateTodoOrder(anyString(), any(TodoOrder.class));
+
+        mvc.perform(put("/api/v1/todos/order")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(JsonMapper.toJson(todoOrder).orElse(""))
+                .sessionAttrs(sessionAttrsMock))
+                .andExpect(jsonPath("$.message", is("User not found")))
+                .andExpect(status().is4xxClientError());
+
+        verify(todoService).updateTodoOrder(anyString(), any(TodoOrder.class));
         verify(lineAPIService).idToken(anyString());
     }
 }
