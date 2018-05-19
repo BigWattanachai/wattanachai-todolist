@@ -321,8 +321,10 @@
     left: 0;
     top: 0;
     bottom: 0;
-    width: 8px;
-    border: 2px dotted #ddd;
+    width: 9px;
+    background: #ddd;
+    border: 2px dotted #5e5e5e;
+
 }
 
 .lobilists .lobilist-item .drag-handler:hover {

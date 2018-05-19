@@ -57,10 +57,10 @@ public class TodoWebController {
         AccessToken token = lineAPIService.accessToken(code);
 
         httpSession.setAttribute(ACCESS_TOKEN, token);
-        return "redirect:/success";
+        return "redirect:/todos";
     }
 
-    @RequestMapping("/success")
+    @RequestMapping("/todos")
     public String success(HttpSession httpSession, Model model) {
 
 
@@ -74,7 +74,7 @@ public class TodoWebController {
             return "redirect:/";
         }
 
-        return "user/success";
+        return "user/todos";
     }
 
     @RequestMapping(value = "/gotoauthpage")

@@ -5,7 +5,7 @@ import com.bot.wattanachaitodolist.domain.Todo;
 import com.bot.wattanachaitodolist.domain.User;
 import com.bot.wattanachaitodolist.repository.TodoRepository;
 import com.bot.wattanachaitodolist.repository.UserRepository;
-import com.bot.wattanachaitodolist.util.RegexUtils;
+import com.bot.wattanachaitodolist.util.TodoMessageUtil;
 import com.linecorp.bot.client.LineMessagingClient;
 import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.event.MessageEvent;
@@ -13,9 +13,6 @@ import com.linecorp.bot.model.event.message.TextMessageContent;
 import com.linecorp.bot.model.message.Message;
 import com.linecorp.bot.model.message.TextMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +45,7 @@ public class MessageService {
         log.info("Got text message from {}: {}", messageEvent.getReplyToken(), message.getText());
 
         if ("edit".equalsIgnoreCase(message.getText())) {
-            this.replyText(messageEvent.getReplyToken(), "https://wattanachai-todolist.herokuapp.com/success");
+            this.replyText(messageEvent.getReplyToken(), "https://wattanachai-todolist.herokuapp.com/todos");
         } else {
             executeCreateTodo(messageEvent.getReplyToken(), messageEvent, message);
         }
@@ -56,7 +53,7 @@ public class MessageService {
 
     private void executeCreateTodo(String replyToken, MessageEvent<TextMessageContent> messageEvent,
                                    TextMessageContent message) {
-        Optional<Tuple<String, Date>> taskAndDateTuper = getTaskAndDateTimeTuper(message.getText());
+        Optional<Tuple<String, Date>> taskAndDateTuper = TodoMessageUtil.getTaskAndDateTimeTuper(message.getText());
         if (taskAndDateTuper.isPresent()) {
             final String userId = messageEvent.getSource().getUserId();
             User userResult = userRepository.findByUserId(userId).map(it -> updateUser(taskAndDateTuper.get(), it))
@@ -89,68 +86,6 @@ public class MessageService {
         todo.setTask(taskAndDateTuper._1);
         todo.setDate(taskAndDateTuper._2);
         return todoRepository.save(todo);
-    }
-
-    private Optional<Tuple<String, Date>> getTaskAndDateTimeTuper(String message) {
-        String[] stringSplited = message.split(" : ");
-        if (stringSplited.length == 3) {
-            String task = stringSplited[0];
-            String dateString = stringSplited[1];
-            if ("today".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime();
-                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else if ("tommorrow".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime().plusDays(1);
-                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else {
-                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
-                if (isMatchDate) {
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
-                    DateTime dateTime = formatter.parseDateTime(dateString);
-                    Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                    return Optional.of(new Tuple<>(task, date));
-                }
-            }
-        } else if (stringSplited.length == 2) {
-            String task = stringSplited[0];
-            String dateString = stringSplited[1];
-            if ("today".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime();
-                Date date = setDefaultTimeToDate(dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else if ("tommorrow".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime().plusDays(1);
-                Date date = setDefaultTimeToDate(dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else {
-                Boolean isMatchDate = RegexUtils.patternMatch(regexDate, dateString).matches();
-                if (isMatchDate) {
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
-                    DateTime dateTime = formatter.parseDateTime(dateString);
-                    Date date = setDefaultTimeToDate(dateTime);
-                    return Optional.of(new Tuple<>(task, date));
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Date setDefaultTimeToDate(DateTime dateTime) {
-        return dateTime.withHourOfDay(12).withMinuteOfHour(0).withSecondOfMinute(0).toDate();
-    }
-
-    private Date getDateByTimeStringAndDateTime(String timeString, DateTime dateTime) {
-        Boolean isMatchTime = RegexUtils.patternMatch(regexTime, timeString).matches();
-        if (isMatchTime) {
-            String[] timeSprite = timeString.split(":");
-            return dateTime.withHourOfDay(Integer.parseInt(timeSprite[0]))
-                    .withMinuteOfHour(Integer.parseInt(timeSprite[1]))
-                    .withSecondOfMinute(0).toDate();
-        } else {
-            return setDefaultTimeToDate(dateTime);
-        }
     }
 
     private void reply(String replyToken, Message message) {

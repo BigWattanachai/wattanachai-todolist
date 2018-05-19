@@ -30,10 +30,8 @@ $(document).ready(function () {
 
 });
 
-
 var initTodoList = function () {
     get("../api/v1/todos").done(function (data) {
-        console.log(data.data)
         $('#todo-list').lobiList({
             defaultStyle: 'lobilist-success',
             controls: ['edit'],
@@ -57,21 +55,6 @@ var initTodoList = function () {
             }
         });
     });
-};
-
-var mapToItem = function (list) {
-    var output = [];
-    for (var i = 0; i < list.length; i++) {
-        output.push({
-            id: false,
-            title: list[i].task,
-            description: list[i].task,
-            dueDate: list[i].date,
-            done: list[i].completed
-        })
-    }
-    return output
-
 };
 
 var post = function (url) {
