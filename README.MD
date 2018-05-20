@@ -5,7 +5,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 #Deploy the app on Heroku
 
 #Deploy using git
-1. $ git clone https://git.heroku.com/wattanachai-todolist.git
+1. $ git clone https://github.com/BigWattanachai/wattanachai-todolist.git
 
 2. open with your favorite editor and change configuration to you own config values
    line:
@@ -56,7 +56,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 
 # Running locally 
 1. Clone the project:
-   $ git clone https://git.heroku.com/wattanachai-todolist.git
+   $ git clone https://github.com/BigWattanachai/wattanachai-todolist.git
 
 2. Open project at your favorite IDE
    File -) New -) Project from Exisiting Sources... then navigate to the project and select POM.xml and Click OK
