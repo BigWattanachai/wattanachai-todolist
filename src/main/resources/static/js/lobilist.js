@@ -362,12 +362,6 @@ $(function () {
             }
         },
 
-        /**
-         * This method is called when plugin is initialized
-         * and initial items are added to the list
-         *
-         * @type Object
-         */
         _addItem: function (item) {
             var me = this;
             if (!item.todoId) {
@@ -420,6 +414,8 @@ $(function () {
                 'id': id,
                 'important': !me.$items[id].important
             });
+
+            me.initTodoList();
         },
 
         _createDropdownForStyleChange: function () {
