@@ -14,49 +14,27 @@ public class TodoMessageUtil {
     private static final String regexTime = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
 
     public static Optional<Tuple<String, Date>> getTaskAndDateTimeTuper(String message) {
-        String[] stringSplited = message.split(" : ");
-        if (stringSplited.length == 3) {
-            String task = stringSplited[0];
-            String dateString = stringSplited[1];
-            if ("today".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime();
-                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else if ("tomorrow".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime().plusDays(1);
-                Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else {
-                Boolean isMatchDate = RegexUtil.patternMatch(regexDate, dateString).matches();
-                if (isMatchDate) {
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
-                    DateTime dateTime = formatter.parseDateTime(dateString);
-                    Date date = getDateByTimeStringAndDateTime(stringSplited[2], dateTime);
-                    return Optional.of(new Tuple<>(task, date));
-                }
-            }
-        } else if (stringSplited.length == 2) {
-            String task = stringSplited[0];
-            String dateString = stringSplited[1];
-            if ("today".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime();
-                Date date = setDefaultTimeToDate(dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else if ("tomorrow".equalsIgnoreCase(dateString)) {
-                DateTime dateTime = new DateTime().plusDays(1);
-                Date date = setDefaultTimeToDate(dateTime);
-                return Optional.of(new Tuple<>(task, date));
-            } else {
-                Boolean isMatchDate = RegexUtil.patternMatch(regexDate, dateString).matches();
-                if (isMatchDate) {
-                    DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
-                    DateTime dateTime = formatter.parseDateTime(dateString);
-                    Date date = setDefaultTimeToDate(dateTime);
-                    return Optional.of(new Tuple<>(task, date));
-                }
-            }
+        String[] messageSplit = message.split(" : ");
+        if (messageSplit.length < 2) {
+            return Optional.empty();
+        } else if ("today".equalsIgnoreCase(messageSplit[1].trim())) {
+            DateTime dateTime = new DateTime();
+            Date date = getDateByTimeStringAndDateTime(messageSplit.length > 2 ? messageSplit[2] : "", dateTime);
+            return Optional.of(new Tuple<>(messageSplit[0], date));
+        } else if ("tomorrow".equalsIgnoreCase(messageSplit[1].trim())) {
+            DateTime dateTime = new DateTime().plusDays(1);
+            Date date = getDateByTimeStringAndDateTime(messageSplit.length > 2 ? messageSplit[2] : "", dateTime);
+            return Optional.of(new Tuple<>(messageSplit[0], date));
+        } else {
+            Boolean isMatchDate = RegexUtil.patternMatch(regexDate, messageSplit[1]).matches();
+            if (!isMatchDate)
+                return Optional.empty();
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("dd/MM/YY");
+            DateTime dateTime = formatter.parseDateTime(messageSplit[1]);
+            Date date = getDateByTimeStringAndDateTime(messageSplit.length > 2 ? messageSplit[2] : "", dateTime);
+            return Optional.of(new Tuple<>(messageSplit[0], date));
+
         }
-        return Optional.empty();
     }
 
     private static Date getDateByTimeStringAndDateTime(String timeString, DateTime dateTime) {
