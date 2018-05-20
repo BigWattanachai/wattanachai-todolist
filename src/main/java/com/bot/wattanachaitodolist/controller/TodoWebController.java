@@ -3,7 +3,6 @@ package com.bot.wattanachaitodolist.controller;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
 import com.bot.wattanachaitodolist.infra.utils.CommonUtils;
 import com.bot.wattanachaitodolist.service.LineAPIService;
-import com.bot.wattanachaitodolist.service.TodoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,12 +20,10 @@ public class TodoWebController {
     static final String ACCESS_TOKEN = "accessToken";
     private static final String NONCE = "nonce";
     private LineAPIService lineAPIService;
-    private TodoService todoService;
 
     @Autowired
-    public TodoWebController(LineAPIService lineAPIService, TodoService todoService) {
+    public TodoWebController(LineAPIService lineAPIService) {
         this.lineAPIService = lineAPIService;
-        this.todoService = todoService;
     }
 
     @RequestMapping("/")
@@ -43,7 +40,6 @@ public class TodoWebController {
             @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "errorCode", required = false) String errorCode,
             @RequestParam(value = "errorMessage", required = false) String errorMessage) {
-
 
         if (error != null || errorCode != null || errorMessage != null) {
             return "redirect:/loginCancel";

@@ -33,7 +33,6 @@ public class TodoController {
         return todoService.getAllTodos(idToken.sub);
     }
 
-
     @PatchMapping("todos/{todoId}")
     public HttpEntity<ApiResponse> editTodo(HttpSession httpSession,
                                             @PathVariable("todoId") String id,
