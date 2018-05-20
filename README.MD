@@ -1,10 +1,10 @@
-#TODO LINE BOT Application
+# TODO LINE BOT Application
 
 This is a TODO LINE BOT for helping people manage their todo list.
 
-#Deploy the app on Heroku
+# Deploy the app on Heroku
 
-#Deploy using git
+# Deploy using git
 1. $ git clone https://github.com/BigWattanachai/wattanachai-todolist.git
 
 2. open with your favorite editor and change configuration to you own config values
@@ -33,7 +33,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 
 7. $ git push heroku master
 
-#deploying without git
+# deploying without git
 
 1. $ heroku login
 
@@ -42,7 +42,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 4. $ heroku config:set TODO_LINE_BOT_HOST=(TODO LINE BOT NAME).herokuapp.com
 
 
-#deploying without git
+# deploying without git
 
 1. $ heroku plugins:install heroku-cli-deploy
 
@@ -51,7 +51,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 3. $ heroku deploy:jar build/libs/wattanachai-todolist-0.0.1-SNAPSHOT.jar --app (TODO LINE BOT NAME)
 
 
-#Prerequisite for running the app
+# Prerequisite for running the app
  - Install Lombok Plugin  [Lombok](https://projectlombok.org/download.html) 
  
  
@@ -72,7 +72,7 @@ This is a TODO LINE BOT for helping people manage their todo list.
 6. Browse to [http://localhost:8080/info](http://localhost:8080/info) 
 
 
-#Built With
+# Built With
 [Spring Boot](http://projects.spring.io/spring-boot/) - Web Framework
 
 [Maven](https://maven.apache.org/) - Dependency Management
