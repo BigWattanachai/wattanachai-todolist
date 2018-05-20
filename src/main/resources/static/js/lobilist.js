@@ -127,7 +127,6 @@ $(function () {
                 contentType: 'application/json'
             }).done(function (res) {
                 if (res.message === 'success') {
-                    console.log("updateOderItem success");
                 } else {
                     if (errorCallback && typeof errorCallback === 'function') {
                         errorCallback(res)
@@ -414,8 +413,6 @@ $(function () {
                 'id': id,
                 'important': !me.$items[id].important
             });
-
-            me.initTodoList();
         },
 
         _createDropdownForStyleChange: function () {
@@ -573,12 +570,14 @@ $(function () {
                 },
                 update: function (event, ui) {
                     $(this).sortable('refresh');
-                    var todoList = me._mapObjectToList(me.$items);
-                    var importantCount = todoList.filter(function (element) {
-                        return element.important === true;
-                    });
-                    if (ui.item.index() < importantCount.length) {
+                    if (ui.item.data("important") === true) {
                         $(this).sortable('cancel');
+                    } else {
+                        var todoList = me._mapObjectToList(me.$items);
+                        var importantCount = me._countImportantItem(todoList);
+                        if (ui.item.index() < importantCount.length) {
+                            $(this).sortable('cancel');
+                        }
                     }
                 },
                 stop: function (event, ui) {
@@ -586,6 +585,16 @@ $(function () {
                     if (ui.item.data("oldIndex") !== ui.item.index())
                         me.updateOderItem(itemOrder);
                 }
+            });
+        },
+
+        _countImportantItem: function (todoList) {
+            var anyUnImportant = true;
+            return todoList.filter(function (todo) {
+                if (todo.important === false) {
+                    anyUnImportant = false;
+                }
+                return anyUnImportant === true && todo.important === true;
             });
         },
 
