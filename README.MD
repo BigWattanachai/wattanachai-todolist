@@ -67,9 +67,12 @@ This is a TODO LINE BOT for helping people manage their todo list.
    $ ./gradlew clean bootRun
   
 5. Compile everything and run all tests with the overage report:
-   $ ./gradlew clean test jacocoTestReport
-  
-6. Browse to [http://localhost:8080/info](http://localhost:8080/info) 
+   $ ./gradlew clean test jacocoTestReport 
+   
+6. Test Coverage file will be created under build/jacocoHtml folder
+   $  open ./build/jacocoHtml/index.html 
+
+7. Browse to [http://localhost:8080/info](http://localhost:8080/info) 
 
 
 # Built With
