@@ -31,7 +31,7 @@ public class TodoWebController {
 
     @RequestMapping("/")
     public String login() {
-        return "user/login";
+        return "todolist/login";
     }
 
     @RequestMapping("/auth")
@@ -74,7 +74,7 @@ public class TodoWebController {
             return "redirect:/";
         }
 
-        return "user/todos";
+        return "todolist/todos";
     }
 
     @RequestMapping(value = "/gotoauthpage")
