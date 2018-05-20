@@ -1,4 +1,4 @@
-package com.bot.wattanachaitodolist.domain;
+package com.bot.wattanachaitodolist.model;
 
 import lombok.Data;
 

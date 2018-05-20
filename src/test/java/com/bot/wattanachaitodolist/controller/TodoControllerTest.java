@@ -1,7 +1,7 @@
 package com.bot.wattanachaitodolist.controller;
 
 import com.bot.wattanachaitodolist.domain.Todo;
-import com.bot.wattanachaitodolist.domain.TodoOrder;
+import com.bot.wattanachaitodolist.model.TodoOrder;
 import com.bot.wattanachaitodolist.exception.NotFoundException;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.AccessToken;
 import com.bot.wattanachaitodolist.infra.line.api.v2.response.IdToken;
