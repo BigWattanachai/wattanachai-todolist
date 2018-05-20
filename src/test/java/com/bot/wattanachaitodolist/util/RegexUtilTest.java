@@ -18,9 +18,8 @@ public class RegexUtilTest {
     }
 
     @Test
-    public void shouldReturnMatcherWhenGetMatcherByRegexAndTargetString(){
-
-        Matcher matcher =  RegexUtil.patternMatch( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$", "12:12");
+    public void shouldReturnMatcherWhenGetMatcherByRegexAndTargetString() {
+        Matcher matcher = RegexUtil.patternMatch("^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$", "12:12");
         assertThat(matcher.matches()).isTrue();
     }
 }

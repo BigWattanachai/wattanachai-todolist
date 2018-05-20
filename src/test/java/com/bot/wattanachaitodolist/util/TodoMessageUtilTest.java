@@ -103,6 +103,4 @@ public class TodoMessageUtilTest {
         assertThat(tupleOptional2.isPresent()).isFalse();
 
     }
-
-
 }

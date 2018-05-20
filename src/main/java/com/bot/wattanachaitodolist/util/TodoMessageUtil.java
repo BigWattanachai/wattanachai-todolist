@@ -33,7 +33,6 @@ public class TodoMessageUtil {
             DateTime dateTime = formatter.parseDateTime(messageSplit[1]);
             Date date = getDateByTimeStringAndDateTime(messageSplit.length > 2 ? messageSplit[2] : "", dateTime);
             return Optional.of(new Tuple<>(messageSplit[0], date));
-
         }
     }
 

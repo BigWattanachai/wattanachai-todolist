@@ -58,22 +58,26 @@ This is a TODO LINE BOT for helping people manage their todo list.
 
 # Running locally 
 1. Clone the project:
+   
    $ git clone https://github.com/BigWattanachai/wattanachai-todolist.git
 
 2. Open project at your favorite IDE
+   
    File -) New -) Project from Exisiting Sources... then navigate to the project and select POM.xml and Click OK
 
 4. Start Application:
+  
    $ ./gradlew clean bootRun
   
 5. Compile everything and run all tests with the overage report:
+   
    $ ./gradlew clean test jacocoTestReport 
    
 6. Test Coverage file will be created under build/jacocoHtml folder
+  
    $  open ./build/jacocoHtml/index.html 
 
 7. Browse to [http://localhost:8080/info](http://localhost:8080/info) 
-
 
 # Built With
 [Spring Boot](http://projects.spring.io/spring-boot/) - Web Framework
