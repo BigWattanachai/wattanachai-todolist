@@ -55,7 +55,7 @@ public class MessageService {
             final String userId = messageEvent.getSource().getUserId();
             userRepository.findByUserId(userId).map(it -> updateUser(taskAndDateTuper.get(), it))
                     .orElseGet(() -> createNewUser(taskAndDateTuper.get(), userId));
-            String response = "Your todo has been created successfully : " + message.getText();
+            String response = "Your todo has been created successfully => " + message.getText();
             this.replyText(replyToken, response);
         } else {
             this.replyText(replyToken, "Please enter correct todo format.");
