@@ -7,15 +7,29 @@ This is a TODO LINE BOT for helping people manage their todo list.
 #Deploy using git
 1. $ git clone https://git.heroku.com/wattanachai-todolist.git
 
-2. $ git remote set-url origin git: <your git url>
+2. open with your favorite editor and change configuration to you own config values
+   line:
+     bot:
+       channelSecret: <your channelSecret>
+       channelToken: <your channelToken>
+       handler.path: /callback
+   
+   linecorp.platform.channel:
+                        channelId: <your channelId>
+                        channelSecret:  <your channelSecret>
+                        callbackUrl: <your callbackUrl>
+   
+   spring.data.mongodb.uri: <your mongodb uri>
+   
+3. $ git remote set-url origin git: <your git url>
 
-3. $ git add .
+4. $ git add .
 
-4. $ git commit -m "initial TODO LINE BOT"
+5. $ git commit -m "initial TODO LINE BOT"
 
-5. $ heroku create
+6. $ heroku create
 
-6. $ git push heroku master
+7. $ git push heroku master
 
 #deploying without git
 
