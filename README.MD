@@ -82,4 +82,4 @@ This is a TODO LINE BOT for helping people manage their todo list.
 # Built With
 [Spring Boot](http://projects.spring.io/spring-boot/) - Web Framework
 
-[Maven](https://maven.apache.org/) - Dependency Management
+[Gradle](https://gradle.org/) - Dependency Management
